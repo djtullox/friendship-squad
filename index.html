@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Friendship Squad — Captain's Corner</title>
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --pink: #ff6b9d;
+    --teal: #00d4aa;
+    --purple: #9b59ff;
+    --yellow: #ffd93d;
+    --orange: #ff8c42;
+    --bg: #0f0f1a;
+    --card: #1a1a2e;
+    --text: #f0f0f0;
+    --muted: #8a8a9e;
+    --border: rgba(255,255,255,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 15% 15%, rgba(155,89,255,0.14) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 8%, rgba(255,107,157,0.11) 0%, transparent 40%),
+      radial-gradient(ellipse at 55% 85%, rgba(0,212,170,0.09) 0%, transparent 50%),
+      radial-gradient(ellipse at 8% 75%, rgba(255,217,61,0.07) 0%, transparent 40%),
+      radial-gradient(ellipse at 92% 55%, rgba(255,140,66,0.09) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 16px 80px;
+  }
+
+  /* ---- HEADER ---- */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    padding-top: 12px;
+  }
+
+  .logo {
+    font-family: 'Righteous', cursive;
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--pink), var(--purple), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    margin-bottom: 2px;
+  }
+
+  .logo-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  /* ---- AUTH ---- */
+  #auth-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 55vh;
+  }
+
+  .auth-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 28px;
+    text-align: center;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .auth-card h2 {
+    font-family: 'Righteous', cursive;
+    font-size: 1.3rem;
+    margin-bottom: 6px;
+  }
+
+  .auth-card p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .kickball-icon {
+    font-size: 2.8rem;
+    margin-bottom: 14px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(5deg); }
+  }
+
+  .g_id_signin { display: flex; justify-content: center; }
+
+  /* ---- ACCESS DENIED ---- */
+  #access-denied {
+    display: none;
+    text-align: center;
+    padding: 40px 24px;
+  }
+  #access-denied h2 {
+    font-family: 'Righteous', cursive;
+    color: var(--pink);
+    margin-bottom: 8px;
+  }
+  #access-denied p { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+
+  /* ---- USER BAR ---- */
+  .user-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 14px;
+    margin-bottom: 20px;
+  }
+
+  .user-info { display: flex; align-items: center; gap: 8px; }
+
+  .user-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 800;
+  }
+
+  .user-name { font-weight: 700; font-size: 0.82rem; }
+
+  .sign-out-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .sign-out-btn:hover { border-color: var(--pink); color: var(--pink); }
+
+  /* ---- APP ---- */
+  #app-screen { display: none; }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 14px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .card-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .icon-pink { background: rgba(255,107,157,0.14); }
+  .icon-teal { background: rgba(0,212,170,0.14); }
+
+  .card-title {
+    font-family: 'Righteous', cursive;
+    font-size: 1.05rem;
+  }
+
+  .card-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* ---- FORM ELEMENTS ---- */
+  label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 5px;
+  }
+
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 13px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 13px;
+    -webkit-appearance: none;
+  }
+
+  input:focus { border-color: var(--purple); }
+
+  /* ---- UPLOAD ---- */
+  .upload-zone {
+    border: 2px dashed rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 13px;
+    position: relative;
+  }
+
+  .upload-zone:hover { border-color: var(--teal); background: rgba(0,212,170,0.03); }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .upload-icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .upload-hint { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+  .upload-hint strong { color: var(--teal); }
+
+  .preview-img {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 13px;
+    max-height: 180px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Righteous', cursive;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-pink {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: white;
+  }
+  .btn-pink:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(155,89,255,0.25);
+  }
+
+  .btn-teal {
+    background: linear-gradient(135deg, var(--teal), #00b894);
+    color: #0a0a14;
+  }
+  .btn-teal:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,212,170,0.25);
+  }
+
+  .btn-small {
+    width: 100%;
+    padding: 9px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+  .btn-small:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ---- STATUS ---- */
+  .status {
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .status.show { display: block; }
+  .status.info { background: rgba(155,89,255,0.08); border: 1px solid rgba(155,89,255,0.18); color: #c4b0f0; }
+  .status.ok { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.18); color: #7aead4; }
+  .status.bad { background: rgba(255,107,157,0.08); border: 1px solid rgba(255,107,157,0.18); color: #f0a0bc; }
+
+  /* ---- LINEUP RESULTS ---- */
+  .lineup-out { margin-top: 14px; display: none; }
+  .lineup-out.show { display: block; }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .section-label.green { color: var(--teal); }
+  .section-label.gray { color: var(--muted); }
+  .section-label.gold { color: var(--yellow); }
+
+  .prow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 11px;
+    border-radius: 7px;
+    margin-bottom: 3px;
+    font-size: 0.84rem;
+  }
+
+  .prow-green { background: rgba(0,212,170,0.06); }
+  .prow-gray { background: rgba(255,255,255,0.02); }
+  .prow-gold { background: rgba(255,217,61,0.06); }
+
+  .prow-left { display: flex; align-items: center; gap: 6px; }
+  .prow-num { font-size: 0.7rem; color: var(--muted); font-weight: 700; min-width: 20px; }
+  .prow-name { font-weight: 700; }
+
+  .prow-ab {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 16px;
+    font-weight: 800;
+  }
+
+  .ab-green { background: rgba(0,212,170,0.13); color: var(--teal); }
+  .ab-gray { background: rgba(255,255,255,0.05); color: var(--muted); }
+  .ab-gold { background: rgba(255,217,61,0.13); color: var(--yellow); }
+
+  .maybe-note {
+    font-size: 0.74rem;
+    color: var(--yellow);
+    opacity: 0.75;
+    margin-top: 1px;
+    font-style: italic;
+    padding-left: 26px;
+  }
+
+  .section-gap { margin-top: 14px; }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .note {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .note strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">Friendship Squad</div>
+    <div class="logo-sub">Captain's Corner</div>
+  </div>
+
+  <!-- ==================== AUTH ==================== -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <span class="kickball-icon">🏐</span>
+      <h2>Captains Only</h2>
+      <p>Sign in with your Google account to access the lineup tools.</p>
+      <div id="g_id_onload"
+        data-client_id="427704375723-652rd34l47v1rkgjdma7bs8dpt3c59qa.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="filled_black"
+        data-text="sign_in_with"
+        data-shape="rectangular"
+        data-logo_alignment="left">
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ACCESS DENIED ==================== -->
+  <div id="access-denied">
+    <h2>Access Denied</h2>
+    <p>Your Google account isn't on the captains list.<br>Ask the head captain to add you in the Settings tab of Season Tracker.</p>
+    <button class="btn btn-pink" style="margin-top:18px; width:auto; padding:10px 22px;" onclick="signOut()">Try another account</button>
+  </div>
+
+  <!-- ==================== SETUP (first time only) ==================== -->
+  <div id="setup-screen" style="display:none;">
+    <div class="auth-card" style="max-width:420px; margin:0 auto;">
+      <span class="kickball-icon">🔑</span>
+      <h2>First-Time Setup</h2>
+      <p>Enter the team's Anthropic API key below. You only need to do this once — it'll be saved on this device.</p>
+      <label style="text-align:left;">Anthropic API Key</label>
+      <input type="text" id="setup-key" placeholder="sk-ant-..." style="font-size:0.8rem;">
+      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:16px;">Ask your head captain for this key if you don't have it.</p>
+      <button class="btn btn-pink" onclick="saveApiKey()">Save &amp; Continue</button>
+      <div class="status" id="setup-status"></div>
+    </div>
+  </div>
+
+  <!-- ==================== APP ==================== -->
+  <div id="app-screen">
+
+    <div class="user-bar">
+      <div class="user-info">
+        <div class="user-avatar" id="user-initial">?</div>
+        <span class="user-name" id="user-name"></span>
+      </div>
+      <button class="sign-out-btn" onclick="signOut()">Sign out</button>
+    </div>
+
+    <!-- ---- POST-GAME AT-BAT TRACKER ---- -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-pink">📸</div>
+        <div>
+          <div class="card-title">Post-Game Tracker</div>
+          <div class="card-desc">Upload board photo &amp; enter game info</div>
+        </div>
+      </div>
+
+      <label>Board Photo</label>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" accept="image/*" capture="environment" id="board-photo" onchange="handlePhoto(event)">
+        <div id="upload-placeholder">
+          <div class="upload-icon">📷</div>
+          <div class="upload-hint">Tap to take a photo or upload<br><strong>Photo of the magnetic lineup board</strong></div>
+        </div>
+      </div>
+      <img id="photo-preview" class="preview-img" style="display:none;">
+
+      <label>Full Rotations Through Lineup</label>
+      <input type="number" id="rotations" min="0" max="10" placeholder="e.g. 2">
+
+      <label>Last Batter (Magnet Name)</label>
+      <input type="text" id="last-batter" placeholder="Exactly as it appears on the magnet">
+
+      <label>Week Number</label>
+      <input type="number" id="week-num" min="1" max="20" placeholder="e.g. 1">
+
+      <button class="btn btn-pink" id="process-btn" onclick="processGame()">
+        Process Game &amp; Update Sheet
+      </button>
+
+      <div class="status" id="process-status"></div>
+    </div>
+
+    <!-- ---- LINEUP GENERATOR ---- -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-teal">📋</div>
+        <div>
+          <div class="card-title">Weekly Lineup</div>
+          <div class="card-desc">Sorted by fewest season at-bats</div>
+        </div>
+      </div>
+
+      <p class="note">Make sure this week's availability form responses are in the <strong>Weekly Availability</strong> folder before generating.</p>
+
+      <button class="btn btn-teal" id="lineup-btn" onclick="generateLineup()">
+        Generate This Week's Lineup
+      </button>
+
+      <div class="status" id="lineup-status"></div>
+      <div class="lineup-out" id="lineup-out"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const CFG = {
+  clientId: '427704375723-652rd34l47v1rkgjdma7bs8dpt3c59qa.apps.googleusercontent.com',
+  rosterSheetId: '1yzMHk1P-acl3XFEh9YULSX0xtj415Db3H5Zxkxd_Dg0',
+  availFolderId: '1raIyVoJY2xDs2hbvPB2waalwQb18sxsI',
+  model: 'claude-sonnet-4-20250514',
+  get anthropicKey() { return localStorage.getItem('fsquad_api_key') || ''; }
+};
+
+let gToken = null;
+let currentUser = null;
+let photoB64 = null;
+let photoType = null;
+
+// ============================================================
+// HELPERS
+// ============================================================
+function $(id) { return document.getElementById(id); }
+
+function stat(id, type, msg) {
+  const el = $(id);
+  el.className = 'status show ' + type;
+  el.innerHTML = msg;
+}
+
+function colLetter(i) {
+  let s = '';
+  i++;
+  while (i > 0) { i--; s = String.fromCharCode(65 + (i % 26)) + s; i = Math.floor(i / 26); }
+  return s;
+}
+
+function parseJwt(t) {
+  return JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+}
+
+async function sheetsGet(range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CFG.rosterSheetId}/values/${encodeURIComponent(range)}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${gToken}` } });
+  if (!r.ok) throw new Error(`Sheet read failed: ${r.status}`);
+  return (await r.json()).values || [];
+}
+
+async function sheetsBatchUpdate(data) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CFG.rosterSheetId}/values:batchUpdate`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${gToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'RAW', data })
+  });
+  if (!r.ok) {
+    const e = await r.json();
+    throw new Error(e.error?.message || 'Sheet write failed');
+  }
+}
+
+async function driveListSheets(folderId) {
+  const q = encodeURIComponent(`'${folderId}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`);
+  const url = `https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=createdTime desc&pageSize=1&fields=files(id,name,createdTime)`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${gToken}` } });
+  if (!r.ok) throw new Error('Drive search failed');
+  return (await r.json()).files || [];
+}
+
+async function readSheetById(sheetId, range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${gToken}` } });
+  if (!r.ok) throw new Error('Availability read failed');
+  return (await r.json()).values || [];
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+async function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  currentUser = payload;
+
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: CFG.clientId,
+    scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+    callback: async (tok) => {
+      gToken = tok.access_token;
+      const ok = await checkAccess(currentUser.email);
+      if (!ok) {
+        $('auth-screen').style.display = 'none';
+        $('access-denied').style.display = 'block';
+        return;
+      }
+      // Check if API key is saved
+      if (!CFG.anthropicKey) {
+        $('auth-screen').style.display = 'none';
+        $('setup-screen').style.display = 'block';
+        return;
+      }
+      showApp();
+    }
+  });
+  client.requestAccessToken();
+}
+
+async function checkAccess(email) {
+  try {
+    const rows = await sheetsGet('Settings!A:B');
+    const captainEmails = [];
+    for (const row of rows) {
+      const label = (row[0] || '').toString().toLowerCase();
+      if (label.includes('captain') && label.includes('email') && row[1]) {
+        captainEmails.push(row[1].toString().trim().toLowerCase());
+      }
+    }
+    if (captainEmails.length === 0) return true; // no restriction set yet
+    return captainEmails.includes(email.toLowerCase());
+  } catch (e) {
+    return true; // if settings unreadable, allow access
+  }
+}
+
+function signOut() {
+  gToken = null;
+  currentUser = null;
+  $('app-screen').style.display = 'none';
+  $('access-denied').style.display = 'none';
+  $('setup-screen').style.display = 'none';
+  $('auth-screen').style.display = 'flex';
+  google.accounts.id.disableAutoSelect();
+}
+
+function showApp() {
+  $('auth-screen').style.display = 'none';
+  $('setup-screen').style.display = 'none';
+  $('app-screen').style.display = 'block';
+  $('user-name').textContent = currentUser.name;
+  $('user-initial').textContent = currentUser.name.charAt(0).toUpperCase();
+}
+
+function saveApiKey() {
+  const key = $('setup-key').value.trim();
+  if (!key || !key.startsWith('sk-ant-')) {
+    stat('setup-status', 'bad', 'That doesn\'t look like a valid Anthropic API key. It should start with sk-ant-');
+    return;
+  }
+  localStorage.setItem('fsquad_api_key', key);
+  showApp();
+}
+
+// ============================================================
+// PHOTO
+// ============================================================
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const dataUrl = ev.target.result;
+    photoType = file.type;
+    photoB64 = dataUrl.split(',')[1];
+    $('upload-placeholder').style.display = 'none';
+    const prev = $('photo-preview');
+    prev.src = dataUrl;
+    prev.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// PROCESS GAME
+// ============================================================
+async function processGame() {
+  const rotations = parseInt($('rotations').value);
+  const lastBatter = $('last-batter').value.trim();
+  const weekNum = parseInt($('week-num').value);
+
+  if (!photoB64) return stat('process-status', 'bad', 'Upload the board photo first.');
+  if (isNaN(rotations)) return stat('process-status', 'bad', 'Enter the number of full rotations.');
+  if (!lastBatter) return stat('process-status', 'bad', 'Enter the last batter\'s magnet name.');
+  if (isNaN(weekNum)) return stat('process-status', 'bad', 'Enter the week number.');
+
+  const btn = $('process-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Reading board...';
+
+  try {
+    // 1 — Parse photo with Claude
+    stat('process-status', 'info', 'Sending photo to Claude for analysis...');
+    const order = await parsePhoto();
+    stat('process-status', 'info', `Board read — ${order.length} players found. Calculating at-bats...`);
+
+    // 2 — Calculate at-bats
+    const lastIdx = order.findIndex(n => n.toLowerCase() === lastBatter.toLowerCase());
+    if (lastIdx === -1) {
+      throw new Error(`"${lastBatter}" not found in the parsed lineup. Names found: ${order.join(', ')}`);
+    }
+
+    const atBatMap = {};
+    order.forEach((name, i) => {
+      atBatMap[name.toLowerCase()] = rotations + (i <= lastIdx ? 1 : 0);
+    });
+
+    // 3 — Read roster
+    btn.innerHTML = '<span class="spinner"></span>Reading roster...';
+    const roster = await sheetsGet('Roster!A:Z');
+    const headers = roster[0] || [];
+
+    // Find week column
+    const weekHeader = `Week ${weekNum}`;
+    let wCol = headers.findIndex(h => h === weekHeader);
+    if (wCol === -1) throw new Error(`Column "${weekHeader}" not found. Add it to the Roster tab first.`);
+
+    // 4 — Build batch update
+    btn.innerHTML = '<span class="spinner"></span>Updating sheet...';
+    const updates = [];
+    let matched = 0;
+
+    for (let r = 1; r < roster.length; r++) {
+      const magnet = (roster[r][2] || '').toString().trim();
+      if (!magnet) continue;
+      const ab = atBatMap[magnet.toLowerCase()];
+      if (ab !== undefined) {
+        updates.push({ range: `Roster!${colLetter(wCol)}${r + 1}`, values: [[ab]] });
+        matched++;
+      }
+    }
+
+    if (matched === 0) throw new Error('No magnet names matched the roster. Fill in Column C (Magnet Name) first.');
+
+    await sheetsBatchUpdate(updates);
+
+    stat('process-status', 'ok',
+      `Done! Week ${weekNum} at-bats written for ${matched} players. ` +
+      (matched < order.length ? `${order.length - matched} names from the board didn't match a magnet name in the roster — double-check Column C.` : '')
+    );
+
+  } catch (err) {
+    stat('process-status', 'bad', err.message);
+  }
+
+  btn.innerHTML = 'Process Game &amp; Update Sheet';
+  btn.disabled = false;
+}
+
+async function parsePhoto() {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CFG.anthropicKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: CFG.model,
+      max_tokens: 1000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: photoType, data: photoB64 } },
+          { type: 'text', text: 'This is a photo of a magnetic kickball batting lineup board. Read every name on the magnets in order from top to bottom. Return ONLY a JSON array of the names exactly as they appear, in batting order. Example: ["Marcus","Jamie","Taylor"]. No explanation, no markdown fences, just the raw JSON array.' }
+        ]
+      }]
+    })
+  });
+
+  const data = await r.json();
+  if (data.error) throw new Error(data.error.message);
+  const txt = data.content[0].text.trim().replace(/```json|```/g, '').trim();
+  return JSON.parse(txt);
+}
+
+// ============================================================
+// LINEUP GENERATOR
+// ============================================================
+async function generateLineup() {
+  const btn = $('lineup-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Pulling data...';
+  $('lineup-out').className = 'lineup-out';
+
+  try {
+    // 1 — Read roster
+    stat('lineup-status', 'info', 'Reading roster...');
+    const roster = await sheetsGet('Roster!A:Z');
+    const headers = roster[0] || [];
+
+    const totalCol = headers.findIndex(h => h && h.toString().toLowerCase().includes('season total'));
+
+    const players = [];
+    for (let r = 1; r < roster.length; r++) {
+      const row = roster[r];
+      const active = (row[4] || 'Y').toString().toUpperCase().trim();
+      if (active === 'N') continue;
+      players.push({
+        firstName: (row[1] || '').toString().trim(),
+        lastName: (row[0] || '').toString().trim(),
+        magnet: (row[2] || '').toString().trim(),
+        atBats: totalCol >= 0 ? (parseInt(row[totalCol]) || 0) : 0
+      });
+    }
+
+    // 2 — Read settings for availability question header
+    const settings = await sheetsGet('Settings!A:B');
+    let qHeader = 'Will you be at the game this week?';
+    let maybeHeader = 'Any context on your maybe?';
+    for (const row of settings) {
+      const label = (row[0] || '').toString().trim();
+      if (label === 'Availability Question Header') qHeader = (row[1] || qHeader).toString().trim();
+      if (label === 'Maybe Context Header') maybeHeader = (row[1] || maybeHeader).toString().trim();
+    }
+
+    // 3 — Find most recent availability sheet
+    stat('lineup-status', 'info', 'Finding latest availability responses...');
+    const files = await driveListSheets(CFG.availFolderId);
+
+    let confirmed = [], maybe = [], confirmedNames = new Set();
+
+    if (files.length > 0) {
+      const availData = await readSheetById(files[0].id, 'Sheet1!A:Z');
+      if (availData.length > 0) {
+        const aHeaders = availData[0];
+        const nameCol = aHeaders.findIndex(h => h && h.toString().toLowerCase().includes('full name'));
+        const respCol = aHeaders.findIndex(h => h && h.toString().trim() === qHeader);
+        const maybeCol = aHeaders.findIndex(h => h && h.toString().trim() === maybeHeader);
+
+        for (let i = 1; i < availData.length; i++) {
+          const row = availData[i];
+          const name = nameCol >= 0 ? (row[nameCol] || '').toString().trim() : '';
+          const resp = respCol >= 0 ? (row[respCol] || '').toString().trim().toLowerCase() : '';
+          const ctx = maybeCol >= 0 ? (row[maybeCol] || '').toString().trim() : '';
+          if (!name) continue;
+          if (resp === 'yes') { confirmed.push(name); confirmedNames.add(name.toLowerCase()); }
+          else if (resp === 'maybe') { maybe.push({ name, context: ctx }); confirmedNames.add(name.toLowerCase()); }
+        }
+      }
+    }
+
+    // 4 — Match & sort
+    const matchPlayer = (formName) => {
+      const fl = formName.toLowerCase();
+      return players.find(p => {
+        const full = `${p.firstName} ${p.lastName}`.toLowerCase();
+        return full === fl || fl.includes(p.firstName.toLowerCase()) || fl.includes(p.lastName.toLowerCase());
+      });
+    };
+
+    const confirmedList = confirmed
+      .map(name => {
+        const p = matchPlayer(name);
+        return p ? { ...p, formName: name } : { firstName: name, lastName: '', atBats: '?', formName: name };
+      })
+      .sort((a, b) => (a.atBats === '?' ? 999 : a.atBats) - (b.atBats === '?' ? 999 : b.atBats));
+
+    const maybeList = maybe
+      .map(m => {
+        const p = matchPlayer(m.name);
+        return p ? { ...p, formName: m.name, context: m.context } : { firstName: m.name, lastName: '', atBats: '?', formName: m.name, context: m.context };
+      })
+      .sort((a, b) => (a.atBats === '?' ? 999 : a.atBats) - (b.atBats === '?' ? 999 : b.atBats));
+
+    const everyoneElse = players
+      .filter(p => !confirmedNames.has(`${p.firstName} ${p.lastName}`.toLowerCase()) && !confirmedNames.has(p.firstName.toLowerCase()))
+      .sort((a, b) => a.atBats - b.atBats);
+
+    // 5 — Render
+    let html = '';
+
+    html += `<div class="section-label green">&#9989; Confirmed Attending (${confirmedList.length})</div>`;
+    if (confirmedList.length === 0) {
+      html += '<p class="note">No confirmed players yet.</p>';
+    } else {
+      confirmedList.forEach((p, i) => {
+        html += `<div class="prow prow-green">
+          <div class="prow-left"><span class="prow-num">${i + 1}.</span><span class="prow-name">${p.firstName} ${p.lastName}</span></div>
+          <span class="prow-ab ab-green">${p.atBats} AB</span>
+        </div>`;
+      });
+    }
+
+    if (maybeList.length > 0) {
+      html += `<div class="section-gap"></div>`;
+      html += `<div class="section-label gold">&#9888;&#65039; Maybe (${maybeList.length})</div>`;
+      maybeList.forEach(p => {
+        html += `<div class="prow prow-gold">
+          <div class="prow-left"><span class="prow-name">${p.firstName} ${p.lastName}</span></div>
+          <span class="prow-ab ab-gold">${p.atBats} AB</span>
+        </div>`;
+        if (p.context) html += `<div class="maybe-note">"${p.context}"</div>`;
+      });
+    }
+
+    html += `<div class="section-gap"></div>`;
+    html += `<div class="section-label gray">&#9898; Everyone Else (${everyoneElse.length})</div>`;
+    everyoneElse.forEach(p => {
+      html += `<div class="prow prow-gray">
+        <div class="prow-left"><span class="prow-name">${p.firstName} ${p.lastName}</span></div>
+        <span class="prow-ab ab-gray">${p.atBats} AB</span>
+      </div>`;
+    });
+
+    html += `<button class="btn-small" onclick="copyLineup()">Copy lineup to clipboard</button>`;
+
+    const out = $('lineup-out');
+    out.innerHTML = html;
+    out.className = 'lineup-out show';
+
+    stat('lineup-status', 'ok', `Lineup generated. ${confirmedList.length} confirmed, ${maybeList.length} maybe, ${everyoneElse.length} others.`);
+
+  } catch (err) {
+    stat('lineup-status', 'bad', err.message);
+  }
+
+  btn.innerHTML = 'Generate This Week\'s Lineup';
+  btn.disabled = false;
+}
+
+function copyLineup() {
+  const el = $('lineup-out');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = el.querySelectorAll('.btn-small');
+    if (btns.length) { btns[0].textContent = 'Copied!'; setTimeout(() => btns[0].textContent = 'Copy lineup to clipboard', 2000); }
+  });
+}
+</script>
+</body>
+</html>
