@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Friendship Squad — Captain's Corner</title>
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+  --pink: #ff6b9d;
+  --teal: #00d4aa;
+  --purple: #9b59ff;
+  --yellow: #ffd93d;
+  --orange: #ff8c42;
+  --bg: #0f0f1a;
+  --card: #1a1a2e;
+  --text: #f0f0f0;
+  --muted: #8a8a9e;
+  --border: rgba(255,255,255,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(155,89,255,0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 8%, rgba(255,107,157,0.11) 0%, transparent 40%),
+    radial-gradient(ellipse at 55% 85%, rgba(0,212,170,0.09) 0%, transparent 50%),
+    radial-gradient(ellipse at 8% 75%, rgba(255,217,61,0.07) 0%, transparent 40%),
+    radial-gradient(ellipse at 92% 55%, rgba(255,140,66,0.09) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+}
+.header { text-align: center; margin-bottom: 28px; padding-top: 12px; }
+.logo {
+  font-family: 'Righteous', cursive;
+  font-size: 2rem;
+  background: linear-gradient(135deg, var(--pink), var(--purple), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+.logo-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* Auth */
+#auth-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 55vh;
+}
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 28px;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+}
+.auth-card h2 { font-family: 'Righteous', cursive; font-size: 1.3rem; margin-bottom: 6px; }
+.auth-card p { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; line-height: 1.5; }
+.kickball-icon {
+  font-size: 2.8rem;
+  margin-bottom: 14px;
+  display: block;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(5deg); }
+}
+.g_id_signin { display: flex; justify-content: center; }
+
+/* Access Denied */
+#access-denied { display: none; text-align: center; padding: 40px 24px; }
+#access-denied h2 { font-family: 'Righteous', cursive; color: var(--pink); margin-bottom: 8px; }
+#access-denied p { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+
+/* User bar */
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin-bottom: 20px;
+}
+.user-info { display: flex; align-items: center; gap: 8px; }
+.user-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 800;
+}
+.user-name { font-weight: 700; font-size: 0.82rem; }
+.sign-out-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.sign-out-btn:hover { border-color: var(--pink); color: var(--pink); }
+
+/* App */
+#app-screen { display: none; }
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 14px;
+}
+.card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.card-icon {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.icon-pink { background: rgba(255,107,157,0.14); }
+.card-title { font-family: 'Righteous', cursive; font-size: 1.05rem; }
+.card-desc { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+
+/* Form labels */
+label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 5px;
+}
+
+/* text inputs */
+input[type="text"] {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 13px;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 13px;
+  -webkit-appearance: none;
+}
+input[type="text"]:focus { border-color: var(--purple); }
+
+/* Upload */
+.upload-zone {
+  border: 2px dashed rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 13px;
+  position: relative;
+}
+.upload-zone:hover { border-color: var(--teal); background: rgba(0,212,170,0.03); }
+.upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%; height: 100%;
+  margin: 0; padding: 0; border: none;
+}
+.upload-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.upload-hint { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+.upload-hint strong { color: var(--teal); }
+.preview-img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 13px;
+  max-height: 180px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: none;
+  font-family: 'Righteous', cursive;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.04em;
+}
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-pink {
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: white;
+}
+.btn-pink:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(155,89,255,0.25);
+}
+.btn-teal {
+  background: linear-gradient(135deg, var(--teal), #00b894);
+  color: #0a0a14;
+}
+.btn-teal:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,212,170,0.25);
+}
+.btn-orange {
+  background: linear-gradient(135deg, var(--orange), #e67e22);
+  color: white;
+}
+.btn-orange:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255,140,66,0.25);
+}
+
+/* Status */
+.status {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-top: 12px;
+  display: none;
+}
+.status.show { display: block; }
+.status.info { background: rgba(155,89,255,0.08); border: 1px solid rgba(155,89,255,0.18); color: #c4b0f0; }
+.status.ok { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.18); color: #7aead4; }
+.status.bad { background: rgba(255,107,157,0.08); border: 1px solid rgba(255,107,157,0.18); color: #f0a0bc; }
+.status.warn { background: rgba(255,140,66,0.08); border: 1px solid rgba(255,140,66,0.18); color: #f0c090; }
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Order list rows */
+.order-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.order-row-normal { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+.order-row-normal:active { background: rgba(255,255,255,0.08); }
+.order-row-last { background: rgba(255,217,61,0.10); border: 1px solid rgba(255,217,61,0.35); }
+.order-row-guest { background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.06); opacity: 0.6; }
+.order-num {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 700;
+  min-width: 20px;
+  flex-shrink: 0;
+}
+.order-row input.order-name {
+  flex: 1;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid transparent !important;
+  border-radius: 0 !important;
+  outline: none;
+  padding: 2px 4px !important;
+  margin-bottom: 0 !important;
+  min-width: 0;
+  width: 100%;
+  box-shadow: none !important;
+  transition: border-color 0.15s;
+  -webkit-appearance: none !important;
+}
+.order-row input.order-name:focus { border-bottom-color: var(--purple) !important; }
+.order-row-guest input.order-name { color: var(--muted) !important; }
+.order-last-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 7px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  background: rgba(255,255,255,0.06);
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.15s;
+}
+.order-row-last .order-last-tag {
+  background: rgba(255,217,61,0.18);
+  color: var(--yellow);
+  border-color: rgba(255,217,61,0.4);
+}
+.order-guest-tag {
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-weight: 700;
+  background: rgba(255,255,255,0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Rotations stepper */
+.stepper {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  height: 44px;
+}
+.stepper-btn {
+  width: 48px;
+  height: 100%;
+  background: rgba(255,255,255,0.05);
+  border: none;
+  color: var(--text);
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.stepper-btn:hover { background: rgba(255,255,255,0.1); }
+.stepper-btn:active { background: rgba(155,89,255,0.25); }
+.stepper-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  padding: 0;
+  height: 100%;
+}
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Confirm buttons */
+.confirm-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.cancel-btn {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 13px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cancel-btn:hover { border-color: var(--pink); color: var(--pink); }
+
+/* Lightbox */
+#lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#lightbox.open { display: flex; }
+#lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  touch-action: pinch-zoom;
+  border-radius: 4px;
+}
+#lightbox-close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  -webkit-tap-highlight-color: transparent;
+}
+#lightbox-close:hover { background: rgba(255,255,255,0.25); }
+
+/* Field hint */
+.field-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+  margin-top: -4px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">Friendship Squad</div>
+    <div class="logo-sub">Captain's Corner</div>
+  </div>
+
+  <!-- AUTH -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <span class="kickball-icon">🏐</span>
+      <h2>Captains Only</h2>
+      <p>Sign in with your Google account to access the lineup tools.</p>
+      <div id="g_id_onload"
+        data-client_id="427704375723-652rd34l47v1rkgjdma7bs8dpt3c59qa.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="filled_black"
+        data-text="sign_in_with"
+        data-shape="rectangular"
+        data-logo_alignment="left">
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCESS DENIED -->
+  <div id="access-denied">
+    <h2>Access Denied</h2>
+    <p>Your Google account isn't on the captains list.<br>Ask the head captain to add you in the Settings tab of Season Tracker.</p>
+    <button class="btn btn-pink" style="margin-top:18px; width:auto; padding:10px 22px;" onclick="signOut()">Try another account</button>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup-screen" style="display:none;">
+    <div class="auth-card" style="max-width:420px; margin:0 auto;">
+      <span class="kickball-icon">🔑</span>
+      <h2>First-Time Setup</h2>
+      <p>Enter the team's Anthropic API key below. You only need to do this once — it'll be saved on this device.</p>
+      <label style="text-align:left;">Anthropic API Key</label>
+      <input type="text" id="setup-key" placeholder="sk-ant-..." style="font-size:0.8rem;">
+      <p style="font-size:0.75rem; color:var(--muted); margin-bottom:16px;">Ask your head captain for this key if you don't have it.</p>
+      <button class="btn btn-pink" onclick="saveApiKey()">Save &amp; Continue</button>
+      <div class="status" id="setup-status"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app-screen">
+    <div class="user-bar">
+      <div class="user-info">
+        <div class="user-avatar" id="user-initial">?</div>
+        <span class="user-name" id="user-name"></span>
+      </div>
+      <button class="sign-out-btn" onclick="signOut()">Sign out</button>
+    </div>
+
+    <!-- POST-GAME TRACKER -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-pink">📸</div>
+        <div>
+          <div class="card-title">Post-Game Tracker</div>
+          <div class="card-desc">Upload board photo &amp; enter game info</div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Photo upload + trigger -->
+      <label>Board Photo</label>
+      <div class="upload-zone">
+        <input type="file" accept="image/*" id="board-photo" onchange="handlePhoto(event)">
+        <div id="upload-placeholder">
+          <div class="upload-icon">📷</div>
+          <div class="upload-hint">Tap to take a photo or upload<br><strong>Photo of the magnetic lineup board</strong></div>
+        </div>
+      </div>
+      <img id="photo-preview" class="preview-img" style="display:none;">
+      <button class="btn btn-pink" id="process-btn" onclick="processGame()">
+        Read Board
+      </button>
+      <div class="status" id="process-status"></div>
+
+      <!-- STEP 2: Review order, tap last batter, set rotations, submit -->
+      <div id="confirm-section" style="display:none; margin-top:20px;">
+
+        <label>Batting Order</label>
+        <p class="field-hint">Edit any name by tapping it. Tap anywhere else on a row to mark that player as the <span style="color:var(--yellow); font-weight:800;">last batter</span>.</p>
+        <div id="order-list"></div>
+
+        <div style="margin-top:18px;">
+          <label>Full Rotations Through Lineup</label>
+          <p class="field-hint">Complete trips through the full order — doesn't include the partial rotation at the end.</p>
+          <div class="stepper">
+            <button class="stepper-btn" onclick="stepRotations(-1)">−</button>
+            <input class="stepper-input" type="number" id="rotations" value="0" min="0" max="20" inputmode="numeric" pattern="[0-9]*" onchange="clampRotations()">
+            <button class="stepper-btn" onclick="stepRotations(1)">+</button>
+          </div>
+        </div>
+
+        <div class="status" id="last-batter-hint"></div>
+
+        <div class="confirm-buttons">
+          <button class="btn btn-teal" id="confirm-btn" style="flex:1;" onclick="confirmAndSubmit()" disabled>Looks Good — Submit</button>
+          <button class="cancel-btn" onclick="cancelConfirm()">Cancel</button>
+        </div>
+        <div class="status" id="confirm-status"></div>
+      </div>
+
+      <!-- PHOTO RETRY -->
+      <div id="photo-retry-section" style="display:none; margin-top:12px;">
+        <div class="status show warn" id="photo-retry-status"></div>
+        <button class="btn btn-orange" id="photo-retry-btn" style="margin-top:10px;" onclick="retryPhotoSave()">
+          Retry Photo Upload
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()" aria-label="Close">✕</button>
+  <img id="lightbox-img" src="" alt="Full lineup board">
+</div>
+
+<script>
+/* ==============================
+   CONFIG
+   ============================== */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqkfk1oTPZK0sQ_QVIRkdtM8LDqw8658N1wThGavAUA5PPOfP7wSqxncZHlnkR4WI/exec';
+const CLIENT_ID = '427704375723-652rd34l47v1rkgjdma7bs8dpt3c59qa.apps.googleusercontent.com';
+const CLAUDE_MODEL = 'claude-sonnet-4-6';
+
+/* ==============================
+   STATE
+   ============================== */
+let currentUser = null;
+let photoB64 = null;
+let photoType = null;
+let parsedOrder = [];        // matched names, e.g. "Kevin Brennan" or "[GUEST] Mike T"
+let pendingLastBatter = '';  // exact string from parsedOrder, set by tapping a row
+let pendingPhotoWeek = null; // set after successful write, used by photo retry only
+
+/* ==============================
+   HELPERS
+   ============================== */
+function getApiKey() {
+  return localStorage.getItem('fsquad_api_key') || '';
+}
+
+function el(id) {
+  return document.getElementById(id);
+}
+
+function stat(id, type, msg) {
+  const s = el(id);
+  s.className = 'status show ' + type;
+  s.innerHTML = msg;
+}
+
+function hideStat(id) {
+  const s = el(id);
+  s.className = 'status';
+  s.innerHTML = '';
+}
+
+function parseJwt(token) {
+  const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(atob(base64));
+}
+
+async function callBackend(data) {
+  const resp = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(data),
+    redirect: 'follow'
+  });
+  const text = await resp.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error('Backend returned invalid response');
+  }
+}
+
+/* ==============================
+   AUTH
+   ============================== */
+async function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  currentUser = payload;
+
+  try {
+    const result = await callBackend({ action: 'getSettings' });
+    if (result.error) throw new Error(result.error);
+
+    const settings = result.settings || {};
+    const captainEmails = [];
+    for (const key in settings) {
+      if (key.toLowerCase().indexOf('captain') >= 0 && key.toLowerCase().indexOf('email') >= 0 && settings[key]) {
+        captainEmails.push(settings[key].toString().toLowerCase().trim());
+      }
+    }
+
+    if (captainEmails.length > 0 && captainEmails.indexOf(currentUser.email.toLowerCase()) === -1) {
+      el('auth-screen').style.display = 'none';
+      el('access-denied').style.display = 'block';
+      return;
+    }
+
+    if (!getApiKey()) {
+      el('auth-screen').style.display = 'none';
+      el('setup-screen').style.display = 'block';
+      return;
+    }
+
+    showApp();
+  } catch (e) {
+    if (!getApiKey()) {
+      el('auth-screen').style.display = 'none';
+      el('setup-screen').style.display = 'block';
+      return;
+    }
+    showApp();
+  }
+}
+
+function showApp() {
+  el('auth-screen').style.display = 'none';
+  el('setup-screen').style.display = 'none';
+  el('access-denied').style.display = 'none';
+  el('app-screen').style.display = 'block';
+  el('user-name').textContent = currentUser.name;
+  el('user-initial').textContent = currentUser.name.charAt(0).toUpperCase();
+}
+
+function signOut() {
+  currentUser = null;
+  el('app-screen').style.display = 'none';
+  el('access-denied').style.display = 'none';
+  el('setup-screen').style.display = 'none';
+  el('auth-screen').style.display = 'flex';
+  google.accounts.id.disableAutoSelect();
+}
+
+function saveApiKey() {
+  const key = el('setup-key').value.trim();
+  if (!key || key.indexOf('sk-ant-') !== 0) {
+    stat('setup-status', 'bad', "That doesn't look like a valid Anthropic API key. It should start with sk-ant-");
+    return;
+  }
+  localStorage.setItem('fsquad_api_key', key);
+  showApp();
+}
+
+/* ==============================
+   LIGHTBOX
+   ============================== */
+function openLightbox(src) {
+  el('lightbox-img').src = src;
+  el('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  el('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ==============================
+   PHOTO HANDLING
+   ============================== */
+function handlePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (ev) {
+    const dataUrl = ev.target.result;
+    photoType = file.type;
+    photoB64 = dataUrl.split(',')[1];
+    el('upload-placeholder').style.display = 'none';
+    const preview = el('photo-preview');
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+    preview.style.cursor = 'pointer';
+    preview.onclick = function () { openLightbox(dataUrl); };
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ==============================
+   ROTATIONS STEPPER
+   ============================== */
+function stepRotations(delta) {
+  const input = el('rotations');
+  const current = parseInt(input.value) || 0;
+  input.value = Math.max(0, Math.min(20, current + delta));
+}
+
+function clampRotations() {
+  const input = el('rotations');
+  const val = parseInt(input.value);
+  if (isNaN(val) || val < 0) input.value = 0;
+  else if (val > 20) input.value = 20;
+}
+
+/* ==============================
+   STEP 1: Read photo → match names → show list
+   ============================== */
+async function processGame() {
+  if (!photoB64) return stat('process-status', 'bad', 'Upload the board photo first.');
+
+  const btn = el('process-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Reading board...';
+  el('confirm-section').style.display = 'none';
+  el('photo-retry-section').style.display = 'none';
+  pendingLastBatter = '';
+  hideStat('confirm-status');
+  hideStat('last-batter-hint');
+
+  try {
+    stat('process-status', 'info', 'Sending photo to Claude for analysis...');
+    const rawOrder = await parsePhoto();
+    stat('process-status', 'info', 'Board read — ' + rawOrder.length + ' names found. Fetching roster...');
+
+    const rosterResult = await callBackend({ action: 'getRoster' });
+    if (rosterResult.error) throw new Error(rosterResult.error);
+    const rosterNames = [];
+    const roster = rosterResult.roster;
+    for (let r = 1; r < roster.length; r++) {
+      const magnetName = (roster[r][2] || '').toString().trim();
+      if (magnetName) rosterNames.push(magnetName);
+    }
+
+    stat('process-status', 'info', 'Matching names to roster...');
+    const matchedOrder = await matchNamesToRoster(rawOrder, rosterNames);
+
+    parsedOrder = matchedOrder.names.slice();
+
+    renderOrderList(parsedOrder);
+    el('confirm-section').style.display = 'block';
+    el('confirm-btn').disabled = true;
+    stat('process-status', 'info', parsedOrder.length + ' players matched. Tap the row of the last batter, set rotations, then submit.');
+  } catch (err) {
+    stat('process-status', 'bad', err.message);
+  }
+
+  btn.innerHTML = 'Read Board';
+  btn.disabled = false;
+}
+
+async function parsePhoto() {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 1000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: photoType, data: photoB64 } },
+          { type: 'text', text: 'This is a photo of a magnetic kickball batting lineup board. Read every name on the magnets in order from top to bottom. Return ONLY a JSON array of the names exactly as they appear, in batting order. Example: ["Marcus","Jamie","Taylor"]. No explanation, no markdown fences, just the raw JSON array.' }
+        ]
+      }]
+    })
+  });
+
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  const txt = data.content[0].text.trim().replace(/```json|```/g, '').trim();
+  return JSON.parse(txt);
+}
+
+async function matchNamesToRoster(rawNames, rosterNames) {
+  let prompt = 'You are matching names from a kickball lineup board photo to an official team roster.\n\n';
+  prompt += 'OFFICIAL ROSTER (Column C — Magnet Names):\n';
+  for (let i = 0; i < rosterNames.length; i++) {
+    prompt += '- ' + rosterNames[i] + '\n';
+  }
+  prompt += '\nNAMES READ FROM THE PHOTO (in batting order):\n';
+  for (let j = 0; j < rawNames.length; j++) {
+    prompt += (j + 1) + '. ' + rawNames[j] + '\n';
+  }
+  prompt += '\nFor each photo name, find the best match from the official roster. Use intelligent matching:\n';
+  prompt += '- "Kevin" matches "Kevin Brennan" (only one Kevin on the roster)\n';
+  prompt += '- "Jess H" matches "Jessica Henry" (last initial H distinguishes from Jessica Boland)\n';
+  prompt += '- "Allie" matches "Allison Wesel" (common nickname)\n';
+  prompt += '- Handwritten names may have misspellings — match to the closest roster name\n';
+  prompt += '- If a name has no plausible roster match, it is a guest player. Keep the original photo name exactly as-is but prefix it with [GUEST] — for example "[GUEST] Mike T"\n\n';
+  prompt += 'Return ONLY a JSON object with this exact format, no explanation, no markdown fences:\n';
+  prompt += '{"names": ["Full Roster Name 1", "Full Roster Name 2", ...]}';
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: 1500,
+      messages: [{
+        role: 'user',
+        content: prompt
+      }]
+    })
+  });
+
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  const txt = data.content[0].text.trim().replace(/```json|```/g, '').trim();
+  return JSON.parse(txt);
+}
+
+/* ==============================
+   RENDER ORDER LIST
+   ============================== */
+function renderOrderList(order) {
+  const list = el('order-list');
+  list.innerHTML = '';
+
+  for (let i = 0; i < order.length; i++) {
+    const name = order[i];
+    const isGuest = name.indexOf('[GUEST]') === 0;
+    const displayName = isGuest ? name.replace('[GUEST] ', '').replace('[GUEST]', '').trim() : name;
+
+    const row = document.createElement('div');
+    row.className = 'order-row ' + (isGuest ? 'order-row-guest' : 'order-row-normal');
+    row.setAttribute('data-index', i);
+
+    // Tapping the row (not the text input itself) sets last batter
+    row.addEventListener('click', function (e) {
+      if (e.target.classList.contains('order-name')) return;
+      setLastBatter(parseInt(this.getAttribute('data-index')));
+    });
+
+    const numSpan = document.createElement('span');
+    numSpan.className = 'order-num';
+    numSpan.textContent = (i + 1) + '.';
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'order-name';
+    inp.value = displayName;
+    inp.setAttribute('data-index', i);
+    if (isGuest) inp.readOnly = true; // guest names are display-only; still tappable for last batter
+    inp.addEventListener('change', function () {
+      const idx = parseInt(this.getAttribute('data-index'));
+      const wasGuest = parsedOrder[idx].indexOf('[GUEST]') === 0;
+      const newVal = wasGuest ? '[GUEST] ' + this.value.trim() : this.value.trim();
+      parsedOrder[idx] = newVal;
+      // Keep pendingLastBatter in sync if this was the selected row
+      if (pendingLastBatter === parsedOrder[idx] || pendingLastBatter === (wasGuest ? '[GUEST] ' + this.value.trim() : this.value.trim())) {
+        pendingLastBatter = newVal;
+      }
+    });
+
+    row.appendChild(numSpan);
+    row.appendChild(inp);
+
+    if (isGuest) {
+      const guestTag = document.createElement('span');
+      guestTag.className = 'order-guest-tag';
+      guestTag.textContent = 'GUEST';
+      row.appendChild(guestTag);
+    }
+
+    // LAST badge on every row — styled active only when row has order-row-last class
+    const lastTag = document.createElement('span');
+    lastTag.className = 'order-last-tag';
+    lastTag.textContent = 'LAST';
+    row.appendChild(lastTag);
+
+    list.appendChild(row);
+  }
+}
+
+/* ==============================
+   TAP TO SET LAST BATTER
+   ============================== */
+function setLastBatter(idx) {
+  pendingLastBatter = parsedOrder[idx];
+
+  const rows = el('order-list').querySelectorAll('.order-row');
+  rows.forEach(function (row) {
+    const rowIdx = parseInt(row.getAttribute('data-index'));
+    const isGuest = parsedOrder[rowIdx].indexOf('[GUEST]') === 0;
+
+    if (rowIdx === idx) {
+      row.className = 'order-row order-row-last';
+    } else {
+      row.className = 'order-row ' + (isGuest ? 'order-row-guest' : 'order-row-normal');
+    }
+  });
+
+  el('confirm-btn').disabled = false;
+  hideStat('last-batter-hint');
+}
+
+/* ==============================
+   STEP 2: Submit
+   ============================== */
+async function confirmAndSubmit() {
+  if (!pendingLastBatter) {
+    stat('last-batter-hint', 'bad', 'Tap a row in the list above to mark the last batter first.');
+    return;
+  }
+
+  const rotations = parseInt(el('rotations').value) || 0;
+
+  // Find last batter index — exact match since we stored the string from parsedOrder directly
+  let lastIdx = -1;
+  for (let i = 0; i < parsedOrder.length; i++) {
+    if (parsedOrder[i] === pendingLastBatter) {
+      lastIdx = i;
+      break;
+    }
+  }
+
+  if (lastIdx === -1) {
+    stat('confirm-status', 'bad', 'Could not locate the last batter in the lineup. Tap a row to re-select.');
+    return;
+  }
+
+  const atBats = [];
+  let guestCount = 0;
+  for (let j = 0; j < parsedOrder.length; j++) {
+    if (parsedOrder[j].indexOf('[GUEST]') === 0) {
+      guestCount++;
+      continue;
+    }
+    atBats.push({
+      name: parsedOrder[j],
+      abs: rotations + (j <= lastIdx ? 1 : 0)
+    });
+  }
+
+  const btn = el('confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Updating sheet...';
+
+  try {
+    const result = await callBackend({ action: 'writeAtBats', atBats: atBats });
+    if (result.error) throw new Error(result.error);
+
+    // Success — lock confirm section permanently
+    el('confirm-section').style.display = 'none';
+    el('photo-retry-section').style.display = 'none';
+    pendingPhotoWeek = result.week || 'unknown';
+
+    let msg = (result.week || 'Week') + ' at-bats written for ' + result.matched + ' players.';
+    if (guestCount > 0) {
+      msg += ' ' + guestCount + (guestCount === 1 ? ' guest' : ' guests') + ' skipped.';
+    }
+
+    btn.innerHTML = '<span class="spinner"></span>Saving photo...';
+    try {
+      await callBackend({
+        action: 'savePhoto',
+        photoB64: photoB64,
+        mimeType: photoType,
+        week: pendingPhotoWeek
+      });
+      msg += ' Photo saved to Drive.';
+      stat('process-status', 'ok', '✅ Done! ' + msg);
+    } catch (photoErr) {
+      stat('process-status', 'ok', '✅ ' + msg);
+      stat('photo-retry-status', 'warn', '⚠️ Photo failed to save to Drive. At-bats are recorded. Tap below to retry.');
+      el('photo-retry-section').style.display = 'block';
+    }
+
+  } catch (err) {
+    stat('confirm-status', 'bad', err.message);
+    btn.disabled = false;
+    btn.innerHTML = 'Looks Good — Submit';
+  }
+}
+
+/* ==============================
+   PHOTO RETRY
+   ============================== */
+async function retryPhotoSave() {
+  const btn = el('photo-retry-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Retrying...';
+
+  try {
+    await callBackend({
+      action: 'savePhoto',
+      photoB64: photoB64,
+      mimeType: photoType,
+      week: pendingPhotoWeek
+    });
+    el('photo-retry-section').style.display = 'none';
+    const s = el('process-status');
+    s.innerHTML = s.innerHTML + ' Photo saved to Drive.';
+  } catch (photoErr) {
+    stat('photo-retry-status', 'warn', '⚠️ Still failed to save photo. Check your connection and try again.');
+    btn.disabled = false;
+    btn.innerHTML = 'Retry Photo Upload';
+  }
+}
+
+/* ==============================
+   CANCEL
+   ============================== */
+function cancelConfirm() {
+  el('confirm-section').style.display = 'none';
+  el('photo-retry-section').style.display = 'none';
+  hideStat('process-status');
+  hideStat('confirm-status');
+  hideStat('last-batter-hint');
+  parsedOrder = [];
+  pendingLastBatter = '';
+}
+</script>
+</body>
+</html>
