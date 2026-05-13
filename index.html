@@ -995,7 +995,7 @@ async function parsePhoto() {
         role: 'user',
         content: [
           { type: 'image', source: { type: 'base64', media_type: photoType, data: photoB64 } },
-          { type: 'text', text: 'This is a photo of a magnetic kickball batting lineup board. Read every name on the magnets in order from top to bottom. Return ONLY a JSON array of the names exactly as they appear, in batting order. Example: ["Marcus","Jamie","Taylor"]. No explanation, no markdown fences, just the raw JSON array.' }
+          { type: 'text', text: 'This is a photo of a magnetic kickball batting lineup board. Names may be arranged in one or more columns. Always read column by column, left to right — finish each column top to bottom before moving to the next. For example, with two columns: read the entire left column top to bottom, then the entire right column top to bottom. The same logic applies for three or four columns. Do NOT read across rows. Return ONLY a JSON array of the names exactly as they appear, in batting order. Example: ["Marcus","Jamie","Taylor"]. No explanation, no markdown fences, just the raw JSON array.' }
         ]
       }]
     })
