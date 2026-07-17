@@ -166,6 +166,7 @@ body::before {
   flex-shrink: 0;
 }
 .icon-pink { background: rgba(255,107,157,0.14); }
+.icon-teal { background: rgba(0,212,170,0.14); }
 .card-title { font-family: 'Righteous', cursive; font-size: 1.05rem; }
 .card-desc { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
 
@@ -391,7 +392,7 @@ input[type="text"]:focus { border-color: var(--purple); }
   flex-shrink: 0;
 }
 
-/* Rotations stepper */
+/* Rotations / score steppers */
 .stepper {
   display: flex;
   align-items: center;
@@ -484,6 +485,16 @@ input[type="text"]:focus { border-color: var(--purple); }
   margin: 10px 0 14px;
   line-height: 1.5;
 }
+.presubmit-score {
+  margin: 4px 0 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-align: center;
+}
 
 /* Lightbox */
 #lightbox {
@@ -535,6 +546,46 @@ input[type="text"]:focus { border-color: var(--purple); }
 /* Hidden file input for change photo */
 #change-photo-input {
   display: none;
+}
+
+/* Rainout slider */
+.slider-track {
+  position: relative;
+  height: 44px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  overflow: hidden;
+}
+.slider-fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: rgba(0,212,170,0.18);
+  transition: background 0.2s;
+}
+.slider-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  pointer-events: none;
+  text-align: center;
+  padding: 0 12px;
+}
+.slider-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
 }
 </style>
 </head>
@@ -617,7 +668,7 @@ input[type="text"]:focus { border-color: var(--purple); }
         <input type="file" accept="image/*" id="board-photo" onchange="handlePhoto(event)">
         <div id="upload-placeholder">
           <div class="upload-icon">📷</div>
-          <div class="upload-hint">Tap to take a photo or upload<br><strong>Photo of the magnetic lineup board</strong></div>
+          <div class="upload-hint" style="color:var(--teal); font-weight:700;">Tap to take/select photo</div>
         </div>
       </div>
       <img id="photo-preview" class="preview-img" style="display:none;" alt="Lineup board">
@@ -628,7 +679,7 @@ input[type="text"]:focus { border-color: var(--purple); }
       </button>
       <div class="status" id="process-status"></div>
 
-      <!-- STEP 2: Review order, tap last batter, set rotations -->
+      <!-- STEP 2: Review order, tap last batter, set rotations, report score -->
       <div id="confirm-section" style="display:none; margin-top:20px;">
 
         <label class="teal" style="margin-top:16px;">Batting Order</label>
@@ -645,6 +696,31 @@ input[type="text"]:focus { border-color: var(--purple); }
           </div>
         </div>
 
+        <div style="margin-top:4px;">
+          <label class="teal">Score Report</label>
+          <p class="field-hint">Opponent auto-fills from the schedule — edit it if it's wrong. This goes out to the league when you submit below.</p>
+          <input type="text" id="opponent-name" placeholder="Opponent name" oninput="updateOpponentLabel()">
+
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label style="margin-bottom:5px;">Friendship Squad</label>
+              <div class="stepper" style="margin-bottom:0;">
+                <button class="stepper-btn" onclick="blurActive(); stepScore('us',-1)">−</button>
+                <input class="stepper-input" type="number" id="our-score" value="0" min="0" max="40" inputmode="numeric" pattern="[0-9]*" onchange="clampScore('us')">
+                <button class="stepper-btn" onclick="blurActive(); stepScore('us',1)">+</button>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <label id="opponent-score-label" style="margin-bottom:5px;">Opponent</label>
+              <div class="stepper" style="margin-bottom:0;">
+                <button class="stepper-btn" onclick="blurActive(); stepScore('them',-1)">−</button>
+                <input class="stepper-input" type="number" id="their-score" value="0" min="0" max="40" inputmode="numeric" pattern="[0-9]*" onchange="clampScore('them')">
+                <button class="stepper-btn" onclick="blurActive(); stepScore('them',1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="status" id="last-batter-hint"></div>
 
         <div class="confirm-buttons">
@@ -656,8 +732,9 @@ input[type="text"]:focus { border-color: var(--purple); }
 
       <!-- STEP 3: Pre-submit confirmation -->
       <div id="presubmit-section">
-        <label class="teal" style="margin-top:4px;">Confirm At-Bats</label>
-        <p class="field-hint">Double-check the numbers before writing to the sheet. This can't be undone without editing the sheet manually.</p>
+        <label class="teal" style="margin-top:4px;">Confirm At-Bats &amp; Score</label>
+        <p class="field-hint">Double-check everything before it writes to the sheet and emails the league. This can't be undone without editing the sheet manually.</p>
+        <div id="presubmit-score" class="presubmit-score"></div>
         <div id="presubmit-list"></div>
         <p class="presubmit-meta" id="presubmit-meta"></p>
         <div class="confirm-buttons">
@@ -674,6 +751,34 @@ input[type="text"]:focus { border-color: var(--purple); }
           Retry Photo Upload
         </button>
       </div>
+
+      <!-- SCORE REPORT RETRY -->
+      <div id="score-retry-section" style="display:none; margin-top:12px;">
+        <div class="status show warn" id="score-retry-status"></div>
+        <button class="btn btn-orange" id="score-retry-btn" style="margin-top:10px;" onclick="retryScoreReport()">
+          Retry Score Report
+        </button>
+      </div>
+    </div>
+
+    <!-- RAIN OUT -->
+    <div class="card" id="rainout-card">
+      <div class="card-header">
+        <div class="card-icon icon-teal">🌧️</div>
+        <div>
+          <div class="card-title">Rain Out This Week</div>
+          <div class="card-desc" id="rainout-week-desc">Checking the schedule…</div>
+        </div>
+      </div>
+
+      <div class="slider-track">
+        <div class="slider-fill" id="rainout-slide-fill"></div>
+        <div class="slider-label" id="rainout-slide-label">Slide to confirm</div>
+        <input class="slider-input" id="rainout-slide-input" type="range" min="0" max="100" value="0" step="1">
+      </div>
+
+      <div class="status" id="rainout-status"></div>
+      <div style="font-size:0.72rem; color:var(--muted); margin-top:10px; text-align:center;" id="rainout-last-text"></div>
     </div>
   </div>
 </div>
@@ -692,12 +797,15 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqkfk1oTPZK0sQ
 const CLIENT_ID = '427704375723-652rd34l47v1rkgjdma7bs8dpt3c59qa.apps.googleusercontent.com';
 const CLAUDE_MODEL = 'claude-sonnet-4-6';
 const SESSION_DURATION_MS = 120 * 24 * 60 * 60 * 1000; // 120 days
-const TEST_MODE = false; // set to false for production — skips sheet write, tests photo upload only
+const TEST_MODE = false; // set to true to skip real sheet writes, score emails, and rainout writes — for testing only
 
 /* ==============================
    STATE
    ============================== */
 let currentUser = null;
+let appSettings = {};
+let currentWeekName = null;
+let currentGameInfo = null;
 let photoB64 = null;
 let photoType = null;
 let photoDataUrl = null;
@@ -706,6 +814,8 @@ let pendingLastBatter = '';
 let pendingPhotoWeek = null;
 let pendingAtBats = [];      // computed in showPresubmit, used in confirmAndSubmit
 let pendingGuestCount = 0;
+let photoSaveFailed = false;
+let scoreReportFailed = false;
 
 /* ==============================
    HELPERS
@@ -794,6 +904,7 @@ async function handleCredentialResponse(response) {
     if (result.error) throw new Error(result.error);
 
     const settings = result.settings || {};
+    appSettings = settings;
     const captainEmails = [];
     for (const key in settings) {
       if (key.toLowerCase().indexOf('captain') >= 0 && key.toLowerCase().indexOf('email') >= 0 && settings[key]) {
@@ -827,13 +938,25 @@ async function handleCredentialResponse(response) {
   }
 }
 
-function showApp() {
+async function showApp() {
   el('auth-screen').style.display = 'none';
   el('setup-screen').style.display = 'none';
   el('access-denied').style.display = 'none';
   el('app-screen').style.display = 'block';
   el('user-name').textContent = currentUser.name;
   el('user-initial').textContent = currentUser.name.charAt(0).toUpperCase();
+
+  // If we landed here from a saved session (not a fresh login), appSettings
+  // may still be empty — fetch it so the "last rainout" status has data.
+  if (!appSettings || Object.keys(appSettings).length === 0) {
+    try {
+      const settingsResult = await callBackend({ action: 'getSettings' });
+      if (!settingsResult.error) appSettings = settingsResult.settings || {};
+    } catch (e) { /* non-fatal */ }
+  }
+  el('rainout-last-text').textContent = appSettings['Last Rainout'] ? ('Last rainout: ' + appSettings['Last Rainout']) : '';
+
+  refreshWeekInfoQuiet();
 }
 
 function signOut() {
@@ -887,6 +1010,39 @@ function closeLightbox() {
 }
 
 /* ==============================
+   WEEK / SCHEDULE INFO
+   (shared by the score report opponent auto-fill and the
+   rainout button's week label)
+   ============================== */
+async function refreshWeekInfoQuiet() {
+  try {
+    const rosterResult = await callBackend({ action: 'getRoster' });
+    if (!rosterResult.error) applyWeekInfo(rosterResult);
+  } catch (e) { /* non-fatal — rainout card just shows a generic label */ }
+}
+
+function applyWeekInfo(rosterResult) {
+  currentWeekName = rosterResult.nextWeek || null;
+  currentGameInfo = rosterResult.gameInfo || null;
+  updateRainoutCard();
+}
+
+function updateRainoutCard() {
+  const desc = el('rainout-week-desc');
+  const label = el('rainout-slide-label');
+  const input = el('rainout-slide-input');
+  if (currentWeekName) {
+    desc.textContent = 'Only if ' + currentWeekName + ' never happened';
+    label.textContent = 'Slide to mark ' + currentWeekName + ' rained out';
+    input.disabled = false;
+  } else {
+    desc.textContent = 'No open week found on the Roster tab';
+    label.textContent = 'Slide to confirm';
+    input.disabled = true;
+  }
+}
+
+/* ==============================
    PHOTO HANDLING
    ============================== */
 function handlePhoto(event) {
@@ -905,6 +1061,9 @@ function handlePhoto(event) {
     preview.style.display = 'block';
     preview.onclick = function () { openLightbox(photoDataUrl); };
     el('change-photo-btn').style.display = 'inline';
+
+    // A photo means this isn't a rainout — hide that card while one's in progress
+    el('rainout-card').style.display = 'none';
 
     // Reset parsed state if they're swapping photo after a read
     if (parsedOrder.length > 0) {
@@ -928,6 +1087,42 @@ function clampRotations() {
   const val = parseInt(input.value);
   if (isNaN(val) || val < 0) input.value = 0;
   else if (val > 20) input.value = 20;
+}
+
+/* ==============================
+   SCORE STEPPERS
+   ============================== */
+function stepScore(who, delta) {
+  const id = who === 'us' ? 'our-score' : 'their-score';
+  const input = el(id);
+  const current = parseInt(input.value) || 0;
+  input.value = Math.max(0, Math.min(40, current + delta));
+}
+
+function clampScore(who) {
+  const id = who === 'us' ? 'our-score' : 'their-score';
+  const input = el(id);
+  const val = parseInt(input.value);
+  if (isNaN(val) || val < 0) input.value = 0;
+  else if (val > 40) input.value = 40;
+}
+
+function updateOpponentLabel() {
+  const name = el('opponent-name').value.trim();
+  el('opponent-score-label').textContent = name || 'Opponent';
+}
+
+function populateScoreSection() {
+  const opponentInput = el('opponent-name');
+  if (currentGameInfo && currentGameInfo.opponent) {
+    opponentInput.value = currentGameInfo.opponent;
+  } else {
+    opponentInput.value = '';
+    opponentInput.placeholder = 'Enter opponent name';
+  }
+  updateOpponentLabel();
+  el('our-score').value = 0;
+  el('their-score').value = 0;
 }
 
 /* ==============================
@@ -955,6 +1150,8 @@ async function processGame() {
 
     const rosterResult = await callBackend({ action: 'getRoster' });
     if (rosterResult.error) throw new Error(rosterResult.error);
+    applyWeekInfo(rosterResult);
+
     const rosterNames = [];
     const roster = rosterResult.roster;
     for (let r = 1; r < roster.length; r++) {
@@ -969,6 +1166,7 @@ async function processGame() {
     pendingLastBatter = '';
 
     renderOrderList(parsedOrder);
+    populateScoreSection();
     el('confirm-section').style.display = 'block';
     el('confirm-btn').disabled = true;
     stat('process-status', 'info', parsedOrder.length + ' players matched. Tap the row of the last batter, set rotations, then submit.');
@@ -1139,6 +1337,12 @@ function showPresubmit() {
     return;
   }
 
+  const opponent = el('opponent-name').value.trim();
+  if (!opponent) {
+    stat('last-batter-hint', 'bad', 'Enter the opponent name before submitting.');
+    return;
+  }
+
   const rotations = parseInt(el('rotations').value) || 0;
 
   let lastIdx = -1;
@@ -1169,6 +1373,10 @@ function showPresubmit() {
     preList.appendChild(row);
   }
 
+  const ourScore = parseInt(el('our-score').value) || 0;
+  const theirScore = parseInt(el('their-score').value) || 0;
+  el('presubmit-score').textContent = 'Friendship Squad ' + ourScore + '  —  ' + opponent + ' ' + theirScore;
+
   let meta = pendingAtBats.length + ' players · ' + rotations + ' full rotation' + (rotations !== 1 ? 's' : '');
   if (pendingGuestCount > 0) meta += ' · ' + pendingGuestCount + ' guest' + (pendingGuestCount !== 1 ? 's' : '') + ' skipped';
   el('presubmit-meta').textContent = meta;
@@ -1186,51 +1394,50 @@ function cancelPresubmit() {
 }
 
 /* ==============================
-   STEP 3: Write to sheet
+   STEP 3: Write to sheet, report score, save photo
    ============================== */
 async function confirmAndSubmit() {
   const btn = el('submit-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Updating sheet...';
+  photoSaveFailed = false;
+  scoreReportFailed = false;
 
   try {
     let msg = '';
 
     if (TEST_MODE) {
-      // TEST MODE: skip sheet write, use a fake week for photo filename
       pendingPhotoWeek = 'TEST';
       el('presubmit-section').style.display = 'none';
       el('photo-retry-section').style.display = 'none';
-      msg = '[TEST MODE] Sheet write skipped.';
+      el('score-retry-section').style.display = 'none';
+      msg = '[TEST MODE] Sheet write and score report skipped.';
     } else {
       const result = await callBackend({ action: 'writeAtBats', atBats: pendingAtBats });
       if (result.error) throw new Error(result.error);
 
       el('presubmit-section').style.display = 'none';
       el('photo-retry-section').style.display = 'none';
+      el('score-retry-section').style.display = 'none';
       pendingPhotoWeek = result.week || 'unknown';
 
       msg = (result.week || 'Week') + ' at-bats written for ' + result.matched + ' players.';
       if (pendingGuestCount > 0) {
         msg += ' ' + pendingGuestCount + (pendingGuestCount === 1 ? ' guest' : ' guests') + ' skipped.';
       }
+
+      btn.innerHTML = '<span class="spinner"></span>Sending score report...';
+      const scoreOk = await trySendScoreReport();
+      if (scoreOk) msg += ' Score reported to the league.';
     }
 
     btn.innerHTML = '<span class="spinner"></span>Saving photo...';
+    const photoOk = await tryPhotoSave();
+    if (photoOk) msg += ' Photo saved to Drive.';
 
-    // FIX: check the return value instead of assuming success
-    try {
-      const photoResult = await callBackend({ action: 'savePhoto', photoB64: photoB64, mimeType: photoType, week: pendingPhotoWeek });
-      if (photoResult.error) throw new Error(photoResult.error);
-      msg += ' Photo saved to Drive.';
-      stat('process-status', 'ok', '✅ Done! ' + msg);
-      resetForm(); // only reset on full success
-    } catch (photoErr) {
-      stat('process-status', 'ok', '✅ ' + msg);
-      stat('photo-retry-status', 'warn', '⚠️ Photo failed to save to Drive: ' + (photoErr.message || 'unknown error') + '. At-bats are recorded. Tap below to retry.');
-      el('photo-retry-section').style.display = 'block';
-      // do NOT call resetForm() here — photoB64 must survive for the retry
-    }
+    const allGood = !photoSaveFailed && !scoreReportFailed;
+    stat('process-status', 'ok', (allGood ? '✅ Done! ' : '✅ ') + msg);
+    maybeResetForm();
 
   } catch (err) {
     stat('submit-status', 'bad', err.message);
@@ -1239,26 +1446,147 @@ async function confirmAndSubmit() {
   }
 }
 
+async function trySendScoreReport() {
+  try {
+    if (TEST_MODE) return true;
+    const scoreResult = await callBackend({
+      action: 'reportScore',
+      week: pendingPhotoWeek,
+      opponent: el('opponent-name').value.trim(),
+      ourScore: parseInt(el('our-score').value) || 0,
+      theirScore: parseInt(el('their-score').value) || 0
+    });
+    if (scoreResult.error) throw new Error(scoreResult.error);
+    return true;
+  } catch (err) {
+    scoreReportFailed = true;
+    stat('score-retry-status', 'warn', '⚠️ Score report failed to send: ' + (err.message || 'unknown error') + '. At-bats are recorded. Tap below to retry.');
+    el('score-retry-section').style.display = 'block';
+    return false;
+  }
+}
+
+async function tryPhotoSave() {
+  try {
+    const photoResult = await callBackend({ action: 'savePhoto', photoB64: photoB64, mimeType: photoType, week: pendingPhotoWeek });
+    if (photoResult.error) throw new Error(photoResult.error);
+    return true;
+  } catch (err) {
+    photoSaveFailed = true;
+    stat('photo-retry-status', 'warn', '⚠️ Photo failed to save to Drive: ' + (err.message || 'unknown error') + '. At-bats are recorded. Tap below to retry.');
+    el('photo-retry-section').style.display = 'block';
+    return false;
+  }
+}
+
+function maybeResetForm() {
+  if (!photoSaveFailed && !scoreReportFailed) {
+    resetForm();
+  }
+}
+
 /* ==============================
-   PHOTO RETRY
+   RETRIES
    ============================== */
+async function retryScoreReport() {
+  const btn = el('score-retry-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Retrying...';
+
+  const ok = await trySendScoreReport();
+  if (ok) {
+    scoreReportFailed = false;
+    el('score-retry-section').style.display = 'none';
+    const s = el('process-status');
+    s.innerHTML = s.innerHTML + ' Score reported to the league.';
+    maybeResetForm();
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = 'Retry Score Report';
+  }
+}
+
 async function retryPhotoSave() {
   const btn = el('photo-retry-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Retrying...';
 
-  // FIX: check return value and only reset form on success
-  try {
-    const photoResult = await callBackend({ action: 'savePhoto', photoB64: photoB64, mimeType: photoType, week: pendingPhotoWeek });
-    if (photoResult.error) throw new Error(photoResult.error);
+  const ok = await tryPhotoSave();
+  if (ok) {
+    photoSaveFailed = false;
     el('photo-retry-section').style.display = 'none';
     const s = el('process-status');
     s.innerHTML = s.innerHTML + ' Photo saved to Drive.';
-    resetForm();
-  } catch (photoErr) {
-    stat('photo-retry-status', 'warn', '⚠️ Still failed: ' + (photoErr.message || 'unknown error') + '. Check your connection and try again.');
+    maybeResetForm();
+  } else {
     btn.disabled = false;
     btn.innerHTML = 'Retry Photo Upload';
+  }
+}
+
+/* ==============================
+   RAINOUT BUTTON
+   ============================== */
+const rainoutSlideInput = document.getElementById('rainout-slide-input');
+const rainoutSlideFill = document.getElementById('rainout-slide-fill');
+const rainoutSlideLabel = document.getElementById('rainout-slide-label');
+
+rainoutSlideInput.addEventListener('input', function () {
+  const v = Number(rainoutSlideInput.value);
+  if (v >= 95) {
+    rainoutSlideFill.style.width = '100%';
+    rainoutSlideFill.style.background = 'rgba(0,212,170,0.35)';
+  } else {
+    rainoutSlideFill.style.width = v + '%';
+    rainoutSlideFill.style.background = 'rgba(0,212,170,0.18)';
+  }
+});
+
+rainoutSlideInput.addEventListener('change', function () {
+  const v = Number(rainoutSlideInput.value);
+  if (v >= 95) {
+    submitRainout();
+  } else {
+    rainoutSlideInput.value = 0;
+    rainoutSlideFill.style.width = '0%';
+  }
+});
+
+function resetRainoutSlider() {
+  rainoutSlideInput.value = 0;
+  rainoutSlideFill.style.width = '0%';
+  rainoutSlideFill.style.background = 'rgba(0,212,170,0.18)';
+  rainoutSlideInput.disabled = false;
+}
+
+async function submitRainout() {
+  rainoutSlideInput.disabled = true;
+  hideStat('rainout-status');
+  stat('rainout-status', 'info', '<span class="spinner-muted"></span> Marking ' + (currentWeekName || 'this week') + ' as rained out...');
+
+  try {
+    if (TEST_MODE) {
+      stat('rainout-status', 'ok', '✅ [TEST MODE] Would mark ' + (currentWeekName || 'this week') + ' as rained out — sheet write skipped.');
+      setTimeout(function () { resetRainoutSlider(); hideStat('rainout-status'); }, 1800);
+      return;
+    }
+
+    const result = await callBackend({ action: 'markRainout' });
+    if (result.error) throw new Error(result.error);
+
+    stat('rainout-status', 'ok', '✅ ' + result.week + ' marked as rained out.');
+    el('rainout-last-text').textContent = 'Last rainout: ' + result.timestamp;
+    appSettings['Last Rainout'] = result.timestamp;
+
+    setTimeout(async function () {
+      resetRainoutSlider();
+      hideStat('rainout-status');
+      await refreshWeekInfoQuiet();
+    }, 1800);
+
+  } catch (err) {
+    stat('rainout-status', 'bad', err.message);
+    resetRainoutSlider();
   }
 }
 
@@ -1269,6 +1597,7 @@ function resetConfirmSection() {
   el('confirm-section').style.display = 'none';
   el('presubmit-section').style.display = 'none';
   el('photo-retry-section').style.display = 'none';
+  el('score-retry-section').style.display = 'none';
   hideStat('confirm-status');
   hideStat('last-batter-hint');
   hideStat('submit-status');
@@ -1291,7 +1620,9 @@ function resetForm() {
   el('board-photo').value = '';
   el('change-photo-input').value = '';
   el('rotations').value = 0;
+  el('rainout-card').style.display = 'block';
   resetConfirmSection();
+  refreshWeekInfoQuiet();
 }
 
 function cancelConfirm() {
