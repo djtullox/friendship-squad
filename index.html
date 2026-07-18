@@ -543,6 +543,15 @@ input[type="text"]:focus { border-color: var(--purple); }
   line-height: 1.5;
 }
 
+/* Score side label — fixed height so long team names that wrap
+   to two lines don't push the stepper below out of alignment
+   with the shorter side's label */
+.score-side-label {
+  min-height: 32px;
+  display: flex;
+  align-items: flex-end;
+}
+
 /* Hidden file input for change photo */
 #change-photo-input {
   display: none;
@@ -703,7 +712,7 @@ input[type="text"]:focus { border-color: var(--purple); }
 
           <div style="display:flex; gap:10px;">
             <div style="flex:1;">
-              <label style="margin-bottom:5px;">Friendship Squad</label>
+              <label class="score-side-label" style="margin-bottom:5px;">Friendship Squad</label>
               <div class="stepper" style="margin-bottom:0;">
                 <button class="stepper-btn" onclick="blurActive(); stepScore('us',-1)">−</button>
                 <input class="stepper-input" type="number" id="our-score" value="0" min="0" max="40" inputmode="numeric" pattern="[0-9]*" onchange="clampScore('us')">
@@ -711,7 +720,7 @@ input[type="text"]:focus { border-color: var(--purple); }
               </div>
             </div>
             <div style="flex:1;">
-              <label id="opponent-score-label" style="margin-bottom:5px;">Opponent</label>
+              <label id="opponent-score-label" class="score-side-label" style="margin-bottom:5px;">Opponent</label>
               <div class="stepper" style="margin-bottom:0;">
                 <button class="stepper-btn" onclick="blurActive(); stepScore('them',-1)">−</button>
                 <input class="stepper-input" type="number" id="their-score" value="0" min="0" max="40" inputmode="numeric" pattern="[0-9]*" onchange="clampScore('them')">
